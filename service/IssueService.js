@@ -11,35 +11,37 @@ const getIssues = () => {
     return JSON.parse(data);
 }
 
-const createIssue = (title, description) => {
+const createIssue = (newIssue) => {
     // TODO validate input data 
     const issues = getIssues();
-    const issue = {
-        "id": computeNextId(issues),
-        "title": title,
-        "description": description
-    }
+    const issue = {id: computeNextId(issues), ...newIssue};
     issues.push(issue);
 
     fs.writeFileSync(ISSUE_FILE_PATH, JSON.stringify(issues));
+    return issue;
 }
 
 const updateIssue = (issueId, updatedIssue) => {
     const issues = getIssues();
     const indexToUpdate = issues.findIndex(issue => issue.id == issueId);
-    issues[indexToUpdate] = updatedIssue;
+    const issue = {id: Number.parseInt(issueId), ...updatedIssue};
+    issues[indexToUpdate] = issue;
+
+    fs.writeFileSync(ISSUE_FILE_PATH, JSON.stringify(issues));
+    return issue;
+}
+
+const deleteIssue = (issueId) => {
+    const issues = getIssues();
+    const indexToDelete = issues.findIndex(issue => issue.id == issueId);
+    issues.splice(indexToDelete, 1);
 
     fs.writeFileSync(ISSUE_FILE_PATH, JSON.stringify(issues));
 }
 
-const deleteIssues = (issueId) => {
-    const issues = getIssues();
-    const issuesToKeep = issues.filter(issue => !issueId.includes(issue.id));
-
-    fs.writeFileSync(ISSUE_FILE_PATH, JSON.stringify(issuesToKeep));
-}
-
 module.exports = {
     getIssues,
-    createIssue
+    createIssue,
+    updateIssue,
+    deleteIssue
 }

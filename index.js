@@ -1,14 +1,11 @@
 const express = require('express');
-const fs = require('fs')
 const bodyParser = require('body-parser');
-const { getIssues, createIssue } = require('./service/IssueService');
+const { getIssues, createIssue, deleteIssue, updateIssue } = require('./service/IssueService');
 const ISSUE_FILE_PATH = './data/issue.json';
 
 const app = express();
 const port = 3000;
-
-app.use(bodyParser()); // TODO replace deprecated parser
-var jsonParser = bodyParser.json()
+const jsonParser = bodyParser.json();
 
 // APIs
 app.get('/issues', (request, response) => {
@@ -18,19 +15,43 @@ app.get('/issues', (request, response) => {
 
 app.post('/issue', jsonParser, (request, response) => {
   try {
-    createIssue(request.body.title, request.body.description); 
-    response.status(201).send('Issue has been created');
+    const issue = createIssue(request.body); 
+    response.status(201).json(issue).send('Issue has been created');
   } catch (error) {
-    console.error(error);
     response.status(error.status || 500).send(error.message || 'Error');
   }
 });
+
+app.post('/issue/:id', jsonParser, (request, response) => {
+  try {
+    const issue = updateIssue(request.params.id, request.body); 
+    response.status(201).json(issue).send('Issue has been updated');
+  } catch (error) {
+    response.status(error.status || 500).send(error.message || 'Error');
+  }
+});
+
+app.delete('/issue/:id', (request, response) => {
+  try {
+    deleteIssue(request.params.id);
+    response.status(201).send('Issue has been deleted');
+  } catch (error) {
+    response.status(error.status || 500).send(error.message || 'Error');
+  }
+})
 
 // Client
 app.get('/script.js', (request, response) => {
   response.setHeader('Content-Type', 'application/javascript');
   response.sendFile(__dirname + '/client/script.js');
 });
+
+
+app.get('/style.css', (request, response) => {
+  response.setHeader('Content-Type', 'text/css');
+  response.sendFile(__dirname + '/client/style.css');
+});
+
 
 
 app.get('/', (request, response) => {
